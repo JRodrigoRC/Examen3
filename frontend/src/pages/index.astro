@@ -1,0 +1,10 @@
+---
+import Map from "../components/Map.svelte";
+import Layout from "../layouts/Layout.astro";
+// Malaga coordinates
+const origin = [36.719444, -4.42] as [number, number];
+---
+
+<Layout title="Welcome to Astro.">
+  <Map client:load origin={origin} points={[]} />
+</Layout>

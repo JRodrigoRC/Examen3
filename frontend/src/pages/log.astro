@@ -1,0 +1,22 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getAccessToken, isLoggedIn } from "../lib/auth0";
+
+if (!isLoggedIn(Astro)) {
+  return Astro.redirect("/");
+}
+const accessToken = await getAccessToken(Astro);
+const user_id = "auth0|IQownB9ICFSWkgkYNalkuFy4tr8lCnOB";
+
+const response = await fetch(
+  `${import.meta.env.PUBLIC_AUTH0_BASEURL}/api/v2/users/${user_id}/logs`,
+  {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  }
+);
+console.log(await response.json());
+---
+
+<Layout title="Welcome to Astro.">{new Date()}</Layout>

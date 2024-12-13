@@ -1,0 +1,54 @@
+---
+import Map from "../components/Map.svelte";
+import Layout from "../layouts/Layout.astro";
+import { Configuration, Parada, ParadaApi } from "../api";
+import { getAccessToken } from "../lib/auth0";
+import { z } from "zod";
+import ZodForm from "../components/ZodForm";
+
+const scheme = z.object({
+  linea: z.coerce.number().optional(),
+  sentido: z.enum(["Ascendente", "Descendente"]).optional(),
+});
+type Scheme = z.infer<typeof scheme>;
+
+let paradas: Parada[] = [];
+let formData: any | Scheme = {};
+
+if (Astro.request.method === "POST") {
+  const rawFormData = Array.from(
+    await Astro.request.formData().then((x) => x.entries())
+  )
+    .filter((x) => x[1])
+    .reduce((acc, [x, y]) => {
+      acc[x] = y;
+      return acc;
+    }, {} as Record<string, any>);
+  formData = scheme.parse(rawFormData);
+  const configuration = new Configuration({
+    basePath: import.meta.env.BACKEND_URL,
+    accessToken: () => getAccessToken(Astro),
+  });
+  const paradaApi = new ParadaApi(configuration);
+  const filter = {
+    codLinea: formData.linea,
+    sentido: formData.sentido === "Ascendente" ? 1 : 2,
+  };
+
+  paradas = await paradaApi.getParadas(filter);
+}
+const points = paradas.map(({ lat, lon, nombreParada }) => {
+  return {
+    coordinates: [lat, lon] as [number, number],
+    text: nombreParada,
+    open: false,
+  };
+});
+// Malaga coordinates
+const origin = [36.719444, -4.42] as [number, number];
+---
+
+<Layout title="Welcome to Astro.">
+  <ZodForm formData={formData} scheme={scheme} name="Lineas" method={"POST"} />
+  <Map client:load origin={origin} points={points} class="mt-3" />
+</Layout>
