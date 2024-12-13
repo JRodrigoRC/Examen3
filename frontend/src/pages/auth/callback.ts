@@ -8,7 +8,7 @@ export async function get(context: APIContext) {
 
   const payload = new URLSearchParams({
     grant_type: "authorization_code",
-    redirect_uri: context.url.origin + "/auth/callback", // Redirige a esta ruta
+    redirect_uri: context.url.origin,
     client_id: import.meta.env.PUBLIC_AUTH0_CLIENTID,
     client_secret: import.meta.env.AUTH0_CLIENTSECRET,
     audience: import.meta.env.PUBLIC_AUTH0_AUDIENCE,
@@ -25,8 +25,7 @@ export async function get(context: APIContext) {
       body: payload.toString(),
     }
   ).then((x) => x.json());
-
   setCookies(context, response);
 
-  return context.redirect("/"); // Después de autenticar, redirige al home
+  return context.redirect("/");
 }
